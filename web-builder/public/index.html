@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML to APK Builder</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .form-section h2 {
+            color: #444;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            min-height: 150px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+        
+        .file-drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .file-drop-zone:hover,
+        .file-drop-zone.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .file-drop-zone.has-file {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+        
+        .file-drop-zone input[type="file"] {
+            display: none;
+        }
+        
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .permission-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .error-message {
+            color: #f44336;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-message.visible {
+            display: block;
+        }
+        
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .success-message.visible {
+            display: block;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.visible {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1565c0;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 HTML to APK Builder</h1>
+        <p class="subtitle">Convert your self-contained HTML file into an Android application</p>
+        
+        <div class="info-box">
+            <strong>📝 Important:</strong> Your HTML file must be self-contained (single file with inline CSS and JavaScript). 
+            The builder will not split your HTML into separate files.
+        </div>
+        
+        <form id="buildForm" enctype="multipart/form-data">
+            <!-- HTML Upload Section -->
+            <div class="form-section">
+                <h2>📄 Step 1: Upload Your HTML File</h2>
+                <div class="file-drop-zone" id="dropZone">
+                    <input type="file" id="htmlFile" name="html_file" accept=".html,.htm">
+                    <div id="dropText">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <p style="margin-top: 10px;">Drag & drop your index.html here<br>or click to browse</p>
+                    </div>
+                    <div id="fileName" style="display: none; color: #4caf50; font-weight: 600;"></div>
+                </div>
+                <p class="error-message" id="htmlError">Please upload a valid HTML file</p>
+            </div>
+            
+            <!-- App Configuration Section -->
+            <div class="form-section">
+                <h2>⚙️ Step 2: App Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="appName">App Name *</label>
+                    <input type="text" id="appName" name="app_name" placeholder="My HTML App" maxlength="50" required>
+                    <p class="error-message" id="appNameError">Invalid app name</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="packageName">Package Name *</label>
+                    <input type="text" id="packageName" name="package_name" placeholder="com.example.myapp" required>
+                    <p class="help-text">Use reverse domain notation (e.g., com.yourname.appname)</p>
+                    <p class="error-message" id="packageNameError">Invalid package name format</p>
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label for="versionName">Version Name *</label>
+                        <input type="text" id="versionName" name="version_name" placeholder="1.0.0" value="1.0.0" required>
+                        <p class="help-text">Semantic versioning (e.g., 1.0.0)</p>
+                        <p class="error-message" id="versionNameError">Invalid version format</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="versionCode">Version Code *</label>
+                        <input type="number" id="versionCode" name="version_code" placeholder="1" value="1" min="1" max="2147483647" required>
+                        <p class="help-text">Integer version code</p>
+                        <p class="error-message" id="versionCodeError">Invalid version code</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Permissions Section -->
+            <div class="form-section">
+                <h2>🔐 Step 3: Permissions (Optional)</h2>
+                <p class="help-text" style="margin-bottom: 15px;">Select the permissions your app needs:</p>
+                <div class="permissions-grid" id="permissionsGrid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Build Button -->
+            <button type="submit" class="btn" id="buildBtn">
+                🚀 Build Android Project
+            </button>
+            
+            <!-- Loading State -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Building your Android project...</p>
+            </div>
+            
+            <!-- Success Message -->
+            <div class="success-message" id="successMessage">
+                <strong>✅ Success!</strong>
+                <p id="successText"></p>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // API base URL - configure based on environment
+        const API_BASE = window.location.origin;
+        
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const htmlFileInput = document.getElementById('htmlFile');
+        const fileName = document.getElementById('fileName');
+        const dropText = document.getElementById('dropText');
+        const buildForm = document.getElementById('buildForm');
+        const loading = document.getElementById('loading');
+        const successMessage = document.getElementById('successMessage');
+        const successText = document.getElementById('successText');
+        
+        // Load available permissions
+        async function loadPermissions() {
+            try {
+                const response = await fetch(`${API_BASE}/api/permissions`);
+                const data = await response.json();
+                
+                const grid = document.getElementById('permissionsGrid');
+                grid.innerHTML = data.permissions.map(perm => `
+                    <label class="permission-item">
+                        <input type="checkbox" name="permissions" value="${perm.id}">
+                        <span>${perm.label}</span>
+                    </label>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load permissions:', error);
+            }
+        }
+        
+        // File drop zone handling
+        dropZone.addEventListener('click', () => htmlFileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                htmlFileInput.files = files;
+                updateFileDisplay(files[0].name);
+            }
+        });
+        
+        htmlFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                updateFileDisplay(e.target.files[0].name);
+            }
+        });
+        
+        function updateFileDisplay(name) {
+            dropText.style.display = 'none';
+            fileName.style.display = 'block';
+            fileName.textContent = `✓ ${name}`;
+            dropZone.classList.add('has-file');
+        }
+        
+        // Validation functions
+        async function validatePackageName(packageName) {
+            const response = await fetch(`${API_BASE}/api/validate/package-name`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ package_name: packageName })
+            });
+            const data = await response.json();
+            return data;
+        }
+        
+        async function validateAppName(appName) {
+            const response = await fetch(`${API_BASE}/api/validate/app-name`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ app_name: appName })
+            });
+            const data = await response.json();
+            return data;
+        }
+        
+        // Form submission
+        buildForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Reset state
+            successMessage.classList.remove('visible');
+            loading.classList.add('visible');
+            document.querySelectorAll('.error-message').forEach(el => el.classList.remove('visible'));
+            
+            // Validate inputs
+            const appName = document.getElementById('appName').value;
+            const packageName = document.getElementById('packageName').value;
+            const versionName = document.getElementById('versionName').value;
+            const versionCode = parseInt(document.getElementById('versionCode').value);
+            
+            let hasError = false;
+            
+            // Validate app name
+            const appNameResult = await validateAppName(appName);
+            if (!appNameResult.valid) {
+                document.getElementById('appNameError').classList.add('visible');
+                hasError = true;
+            }
+            
+            // Validate package name
+            const packageNameResult = await validatePackageName(packageName);
+            if (!packageNameResult.valid) {
+                document.getElementById('packageNameError').classList.add('visible');
+                hasError = true;
+            }
+            
+            // Check HTML file
+            if (!htmlFileInput.files.length) {
+                document.getElementById('htmlError').classList.add('visible');
+                hasError = true;
+            }
+            
+            if (hasError) {
+                loading.classList.remove('visible');
+                return;
+            }
+            
+            // Collect permissions
+            const permissions = Array.from(document.querySelectorAll('input[name="permissions"]:checked'))
+                .map(cb => cb.value);
+            
+            // Build config object
+            const config = {
+                app_name: appName,
+                package_name: packageName,
+                version_name: versionName,
+                version_code: versionCode,
+                permissions: permissions
+            };
+            
+            // Submit build request
+            const formData = new FormData();
+            formData.append('html_file', htmlFileInput.files[0]);
+            formData.append('config', JSON.stringify(config));
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/build-project`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                loading.classList.remove('visible');
+                
+                if (response.ok && result.success) {
+                    successText.innerHTML = `
+                        <strong>Project generated successfully!</strong><br>
+                        Project directory: <code>${result.project_dir}</code><br><br>
+                        To build the APK, run:<br>
+                        <code>${result.build_command}</code>
+                    `;
+                    successMessage.classList.add('visible');
+                } else {
+                    throw new Error(result.error || 'Build failed');
+                }
+            } catch (error) {
+                loading.classList.remove('visible');
+                alert(`Build failed: ${error.message}`);
+            }
+        });
+        
+        // Initialize
+        loadPermissions();
+    </script>
+</body>
+</html>
